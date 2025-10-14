@@ -1,7 +1,7 @@
 <p align="center">
-  <img alt="Kubernetes" src="https://raw.githubusercontent.com/kubernetes/community/master/logo/png/kubernetes-horizontal-color.png" height="60" />
+  <img alt="Kubernetes" src="https://raw.githubusercontent.com/cncf/artwork/master/projects/kubernetes/horizontal/color/kubernetes-horizontal-color.png" height="60" />
   &nbsp;&nbsp;&nbsp;
-  <img alt="AWS" src="https://a0.awsstatic.com/libra-css/images/logos/aws_logo_smile_1200x630.png" height="48" />
+  <img alt="AWS" src="https://d1.awsstatic.com/webteam/brand-assets/AWS_logo_RGB.8a1c3337c1b662bde6da3159d6c8ebca126d2b08.png" height="48" />
 </p>
 
 # Kubernetes Storage Demo — DevOps Academy
@@ -120,4 +120,3 @@ So step by step: pods don’t talk to disks; they mount a PVC. The PVC describes
 - Kubernetes word mark and logo are trademarks of The Linux Foundation®.
 - AWS and the "smile" logo are trademarks of Amazon.com, Inc. or its affiliates.
 - This repo is for educational purposes (DevOps Academy). Logos are shown here for identification.
-

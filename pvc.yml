@@ -1,0 +1,38 @@
+# PersistentVolumeClaim: requests storage that matches the PV above
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-test                 # PVC name (namespaced)
+  namespace: default               # Must match the pod's namespace
+  labels:
+    app: demo
+
+spec:
+  accessModes:
+    - ReadWriteOnce                # Must be compatible with PV's modes
+  volumeMode: Filesystem           # Must match PV's volumeMode
+
+  # Match the PV's storageClassName; empty string binds to classless PVs
+  storageClassName: manual
+
+  # Request size; must be <= PV's capacity
+  resources:
+    requests:
+      storage: 1Gi
+
+  # Optional: explicitly bind to a specific PV by name (prebinding from PVC side)
+  # volumeName: pv-example
+
+  # Optional: select PVs by labels if multiple are available
+  # selector:
+  #   matchLabels:
+  #     app: demo
+  #   matchExpressions:
+  #     - key: type
+  #       operator: In
+  #       values: ["local"]
+
+  # Advanced: clone/restore from an existing PVC or snapshot (CSI capable)
+  # dataSource:
+  #   kind: PersistentVolumeClaim
+  #   name: source-pvc

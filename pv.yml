@@ -1,0 +1,39 @@
+# PersistentVolume: statically-provisioned example with hostPath
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: test-pv-volume
+  labels:
+    type: local    # Arbitrary label; can be used for selection
+    app: demo      # Example label for grouping
+
+spec:
+  capacity:
+    storage: 5Gi               # Amount of storage the PV provides
+  volumeMode: Filesystem           # Filesystem (default) or Block
+  accessModes:
+    - ReadWriteOnce                # RWO; also ReadOnlyMany (ROX), ReadWriteMany (RWX)
+  persistentVolumeReclaimPolicy: Retain   # Retain, Delete, or (deprecated) Recycle
+  storageClassName: manual         # Identifies which PVCs can bind; empty means no class
+
+  # Volume source: hostPath is simple for single-node clusters (e.g., minikube).
+  # For production, prefer network/cloud-backed sources (NFS, EBS, GCE PD, etc.).
+  hostPath:
+    path: /mnt/data/pv-test # Path on the node; must exist or be created
+    type: DirectoryOrCreate        # Create the directory if missing
+
+  # Optional: restrict which nodes this PV can be used on.
+  # nodeAffinity:
+  #   required:
+  #     nodeSelectorTerms:
+  #       - matchExpressions:
+  #           - key: kubernetes.io/hostname
+  #             operator: In
+  #             values:
+  #               - worker-1
+
+  # Optional: pre-bind this PV to a specific PVC by name/namespace.
+  # claimRef:
+  #   name: my-pvc
+  #   namespace: default
+

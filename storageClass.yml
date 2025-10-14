@@ -1,0 +1,35 @@
+## StorageClass: static (no dynamic provisioner) that matches PV/PVC 'manual'
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: manual                               # Class name; matches PV/PVC storageClassName
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"  # Do not make this the default
+provisioner: kubernetes.io/no-provisioner     # No dynamic provisioning; use pre-created PVs
+reclaimPolicy: Retain                         # Keep data when PVC is deleted (admin cleans up)
+volumeBindingMode: WaitForFirstConsumer       # Binds the PV when a Pod is scheduled (safer for local)
+# allowVolumeExpansion: false                 # Static PVs typically don’t support expansion
+# mountOptions:                               # Optional extra mount flags if needed
+#   - noatime
+
+---
+# Alternative: dynamic provisioning example using a CSI driver (adjust for your cluster)
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: standard-csi
+#   annotations:
+#     storageclass.kubernetes.io/is-default-class: "true"  # Make this the default class (optional)
+# provisioner: hostpath.csi.k8s.io              # Example CSI driver; replace with your driver
+# parameters:
+#   csi.storage.k8s.io/fstype: ext4             # Filesystem type (driver-dependent)
+# reclaimPolicy: Delete                         # Delete backend on PVC deletion (common for dynamic)
+# allowVolumeExpansion: true                    # Allow PVC resize
+# volumeBindingMode: WaitForFirstConsumer       # Provision where the Pod lands (topology-aware)
+# mountOptions:
+#   - noatime
+#   - nodiratime
+# # allowedTopologies:                          # Limit to specific zones/nodes (optional)
+# #   - matchLabelExpressions:
+# #       - key: topology.kubernetes.io/zone
+# #         values: ["us-east-1a", "us-east-1b"]

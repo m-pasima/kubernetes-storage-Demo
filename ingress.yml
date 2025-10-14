@@ -1,0 +1,30 @@
+## Ingress for DevOps Academy NGINX service
+## - Routes host devops-academy.local to Service devops-academy-nginx:80
+## - Requires an Ingress controller (e.g., ingress-nginx) installed in the cluster
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: devops-academy-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"  # HTTP only for simplicity
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: devops-academy.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: devops-academy-nginx
+                port:
+                  number: 80
+
+# Optional TLS example (uncomment and create a secret named devops-academy-tls)
+#  tls:
+#    - hosts:
+#        - devops-academy.local
+#      secretName: devops-academy-tls
+

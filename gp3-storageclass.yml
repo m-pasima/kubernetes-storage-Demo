@@ -1,0 +1,15 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gp3
+provisioner: ebs.csi.aws.com
+parameters:
+  type: gp3            # gp3 EBS volume
+  fsType: ext4         # filesystem to format the volume
+  encrypted: "true"    # use default KMS key (adjust if you need a specific key)
+  iops: "3000"         # gp3 baseline; adjust as needed
+  throughput: "125"    # MiB/s; adjust as needed
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+

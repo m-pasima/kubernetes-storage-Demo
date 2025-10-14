@@ -43,7 +43,7 @@ spec:
               <head>
                 <meta charset="utf-8" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
-                <title>DevOps Academy — Welcome</title>
+                <title>DevOps Academy �?" Welcome</title>
                 <link rel="preconnect" href="https://fonts.googleapis.com">
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
                 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
@@ -54,7 +54,7 @@ spec:
                   <div class="glow"></div>
                   <header>
                     <h1><span class="accent">DevOps</span> Academy</h1>
-                    <p>PVC‑backed NGINX-Demo.</p>
+                    <p>PVC�?'backed NGINX-Demo.</p>
                   </header>
                   <main>
                     <a class="btn" href="https://kubernetes.io/docs/concepts/storage/persistent-volumes/">Learn Kubernetes Storage</a>
@@ -121,3 +121,4 @@ spec:
       port: 80
       targetPort: 80
   type: ClusterIP
+

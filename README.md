@@ -4,7 +4,7 @@
   <img alt="AWS" src="https://a0.awsstatic.com/libra-css/images/logos/aws_logo_smile_1200x630.png" height="48" />
 </p>
 
-# Kubernetes Storage Demo — DevOps Academy
+# Kubernetes Storage Demo ( DevOps Academy)
 
 Colorful, sleek NGINX app backed by PersistentVolumes. Learn how pods use PersistentVolumeClaims, how StorageClasses control provisioning, and how to expose the app via Ingress (ALB on EKS). Aimed at anyone learning Kubernetes storage and DevOps Academy students.
 

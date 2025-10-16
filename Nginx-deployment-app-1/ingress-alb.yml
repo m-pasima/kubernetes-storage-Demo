@@ -1,0 +1,33 @@
+## EKS ALB Ingress for DevOps Academy NGINX
+## - Requires AWS Load Balancer Controller installed in the cluster
+## - Internet-facing ALB; routes / to Service devops-academy-nginx:80
+## - Uses instance target type to work with your NodePort Service
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: devops-academy-alb
+  namespace: staging       #    staging
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+    alb.ingress.kubernetes.io/healthcheck-path: /
+    alb.ingress.kubernetes.io/success-codes: "200-399"
+    # Optional: group multiple Ingresses behind one ALB
+    # alb.ingress.kubernetes.io/group.name: devops-academy
+spec:
+  ingressClassName: alb
+  rules:
+    # You can set a real DNS host you control here; host is optional.
+    # - host: app.example.com
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: devops-academy-nginx
+                port:
+                  number: 80

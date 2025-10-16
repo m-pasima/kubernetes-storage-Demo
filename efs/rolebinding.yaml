@@ -1,0 +1,16 @@
+#kind: # https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name:  leader-locking-nfs-clint-provisioner
+  namespace: storage
+subjects:
+- kind: ServiceAccount
+  name: nfs-client-provisioner # Name is case sensitive
+  namespace: storage
+roleRef:
+  kind: Role
+  name: leader-locking-nfs-clint-provisioner
+  apiGroup: rbac.authorization.k8s.io
+
+

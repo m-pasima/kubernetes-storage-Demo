@@ -1,0 +1,15 @@
+#kind: # https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: nfs-client-provisioner
+subjects:
+- kind: ServiceAccount
+  name: nfs-client-provisioner # Name is case sensitive
+  namespace: storage
+roleRef:
+  kind: ClusterRole
+  name: nfs-client-provisioner-runner
+  apiGroup: rbac.authorization.k8s.io
+
+

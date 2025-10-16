@@ -1,30 +1,47 @@
-## DevOps Academy NGINX app backed by your PVC (pvc-test)
-## - Uses an initContainer to bootstrap colorful static content into the PVC
-## - NGINX serves from the PVC so content persists across pod restarts
+## DevOps Academy NGINX app 2 (EFS multi-attach)
+## - Mounts the SAME PVC `efs-pvc` as app 1
+## - Uses subPath `app2/` so content is isolated
+## - Distinct color theme for visual differentiation
 
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: devops-academy-nginx
+  name: devops-academy-nginx-2
+  namespace: staging
   labels:
-    app: devops-academy
+    app: devops-academy-2
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: devops-academy
+      app: devops-academy-2
   template:
     metadata:
       labels:
-        app: devops-academy
+        app: devops-academy-2
     spec:
+      securityContext:
+        fsGroup: 101                   # nginx (alpine) group id
+        fsGroupChangePolicy: "OnRootMismatch"
       volumes:
         - name: web-content
           persistentVolumeClaim:
-            claimName: pvc-gp3                        #pvc-test
+            claimName: efs-pvc         # <- same PVC as app 1
       initContainers:
-        - name: bootstrap-content
+        - name: create-app2-dir
+          image: busybox:1.36
+          command: ["/bin/sh","-c"]
+          args:
+            - |
+              set -eu
+              mkdir -p /setup/app2/assets
+              # Be permissive on EFS so nginx (gid 101) is fine
+              chmod -R 0775 /setup/app2
+          volumeMounts:
+            - name: web-content
+              mountPath: /setup
+        - name: bootstrap-content-app2
           image: busybox:1.36
           command: ["/bin/sh","-c"]
           args:
@@ -32,9 +49,8 @@ spec:
               set -eu
               TARGET="/work"
               mkdir -p "$TARGET/assets"
-              # If we've already written content, skip
               if [ -f "$TARGET/.bootstrapped" ]; then
-                echo "Content already present."
+                echo "App2 content already present."
                 exit 0
               fi
               cat > "$TARGET/index.html" <<'HTML'
@@ -43,7 +59,7 @@ spec:
               <head>
                 <meta charset="utf-8" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
-                <title>DevOps Academy �?" Welcome</title>
+                <title>DevOps Academy — App 2</title>
                 <link rel="preconnect" href="https://fonts.googleapis.com">
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
                 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
@@ -53,15 +69,15 @@ spec:
                 <div class="hero">
                   <div class="glow"></div>
                   <header>
-                    <h1><span class="accent">DevOps</span> Academy</h1>
-                    <p>PVC�?'backed NGINX-Demo.</p>
+                    <h1><span class="accent">DevOps</span> Academy — App 2</h1>
+                    <p>EFS multi-attach demo (shared PVC, isolated subPath).</p>
                   </header>
                   <main>
-                    <a class="btn" href="https://kubernetes.io/docs/concepts/storage/persistent-volumes/">Learn Kubernetes Storage</a>
-                    <a class="btn ghost" href="#">Explore Labs Here</a>
+                    <a class="btn" href="https://kubernetes.io/docs/concepts/storage/persistent-volumes/">Kubernetes Storage</a>
+                    <a class="btn ghost" href="#">App 2 Rocks</a>
                   </main>
                   <footer>
-                    <small>Served from a PersistentVolumeClaim: pvc-test For DevOps Academy</small>
+                    <small>Served from PersistentVolumeClaim: efs-pvc (subPath: app2)</small>
                   </footer>
                 </div>
               </body>
@@ -69,15 +85,15 @@ spec:
               HTML
               cat > "$TARGET/assets/style.css" <<'CSS'
               :root{
-                --bg:#0f1226; --fg:#e9ecf1; --muted:#9aa3b2; --accent:#6df0ff; --accent2:#8a63ff;
+                --bg:#0a0d1a; --fg:#f5f6fa; --muted:#9aa3b2; --accent:#ff8a00; --accent2:#ff3d3d;
               }
               *{box-sizing:border-box}
-              html,body{height:100%;margin:0;font-family:'Inter',system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--fg);background:radial-gradient(1200px 700px at 20% 10%, rgba(141,110,255,.25), transparent 60%), radial-gradient(900px 600px at 90% 90%, rgba(109,240,255,.2), transparent 60%), var(--bg);}
+              html,body{height:100%;margin:0;font-family:'Inter',system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--fg);background:radial-gradient(1200px 700px at 20% 10%, rgba(255,138,0,.18), transparent 60%), radial-gradient(900px 600px at 90% 90%, rgba(255,61,61,.18), transparent 60%), var(--bg);}
               .hero{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;text-align:center;padding:32px;position:relative;overflow:hidden}
               header h1{font-size: clamp(32px, 5vw, 64px);margin:0;letter-spacing:.5px}
               header p{margin:8px 0 0;color:var(--muted)}
               .accent{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
-              .btn{display:inline-block;padding:12px 20px;margin:8px;border-radius:12px;font-weight:600;color:#0a0d1a;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 10px 30px rgba(141,110,255,.3);text-decoration:none;transition:transform .15s ease, filter .2s ease}
+              .btn{display:inline-block;padding:12px 20px;margin:8px;border-radius:12px;font-weight:600;color:#0a0d1a;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 10px 30px rgba(255,138,0,.3);text-decoration:none;transition:transform .15s ease, filter .2s ease}
               .btn:hover{transform:translateY(-2px);filter:saturate(1.1)}
               .btn.ghost{background:transparent;color:var(--fg);border:1.5px solid rgba(255,255,255,.2)}
               footer{position:fixed;bottom:12px;left:0;right:0;text-align:center;color:var(--muted)}
@@ -87,38 +103,49 @@ spec:
           volumeMounts:
             - name: web-content
               mountPath: /work
+              subPath: app2
       containers:
         - name: nginx
-          image: nginx:1.25-alpine
+          image: nginx:1.27-alpine
           ports:
             - containerPort: 80
           volumeMounts:
             - name: web-content
               mountPath: /usr/share/nginx/html
+              subPath: app2
           readinessProbe:
             httpGet:
               path: /
               port: 80
             initialDelaySeconds: 3
             periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
           resources:
             requests:
               cpu: 50m
               memory: 64Mi
+            limits:
+              cpu: "200m"
+              memory: 128Mi
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: devops-academy-nginx
+  name: devops-academy-nginx-2
+  namespace: staging
   labels:
-    app: devops-academy
+    app: devops-academy-2
 spec:
   selector:
-    app: devops-academy
+    app: devops-academy-2
   ports:
     - name: http
       port: 80
       targetPort: 80
   type: ClusterIP
-

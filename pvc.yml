@@ -2,15 +2,15 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: pvc-test                 # PVC name (namespaced)
-  namespace: default               # Must match the pod's namespace
+  name: pvc-test # PVC name (namespaced)
+  namespace: default # Must match the pod's namespace
   labels:
     app: demo
 
 spec:
   accessModes:
-    - ReadWriteOnce                # Must be compatible with PV's modes
-  volumeMode: Filesystem           # Must match PV's volumeMode
+    - ReadWriteOnce # Must be compatible with PV's modes
+  volumeMode: Filesystem # Must match PV's volumeMode
 
   # Match the PV's storageClassName; empty string binds to classless PVs
   storageClassName: manual
@@ -18,8 +18,7 @@ spec:
   # Request size; must be <= PV's capacity
   resources:
     requests:
-      storage: 1Gi
-
+      storage: 2Gi
   # Optional: explicitly bind to a specific PV by name (prebinding from PVC side)
   # volumeName: pv-example
 
@@ -36,3 +35,9 @@ spec:
   # dataSource:
   #   kind: PersistentVolumeClaim
   #   name: source-pvc
+Resources:
+  LaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      ImageId: <String>
+      InstanceType: <String>

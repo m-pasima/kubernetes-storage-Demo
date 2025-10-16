@@ -1,0 +1,137 @@
+## DevOps Academy NGINX app backed by your PVC (efs-pvc)
+## - Uses an initContainer to bootstrap colorful static content into the PVC (once)
+## - NGINX serves directly from the PVC so content persists across pod restarts and replicas
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devops-academy-nginx
+  namespace: staging
+  labels:
+    app: devops-academy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: devops-academy
+  template:
+    metadata:
+      labels:
+        app: devops-academy
+    spec:
+      securityContext:
+        fsGroup: 101                # let nginx (uid/gid ~101 on alpine) access EFS paths
+        fsGroupChangePolicy: "OnRootMismatch"
+      volumes:
+        - name: web-content
+          persistentVolumeClaim:
+            claimName: efs-pvc
+      initContainers:
+        - name: bootstrap-content
+          image: busybox:1.36
+          command: ["/bin/sh","-c"]
+          args:
+            - |
+              set -eu
+              TARGET="/work"
+              mkdir -p "$TARGET/assets"
+              # If we've already written content, skip
+              if [ -f "$TARGET/.bootstrapped" ]; then
+                echo "Content already present."
+                exit 0
+              fi
+              cat > "$TARGET/index.html" <<'HTML'
+              <!DOCTYPE html>
+              <html lang="en">
+              <head>
+                <meta charset="utf-8" />
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <title>DevOps Academy — Welcome</title>
+                <link rel="preconnect" href="https://fonts.googleapis.com">
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
+                <link rel="stylesheet" href="assets/style.css" />
+              </head>
+              <body>
+                <div class="hero">
+                  <div class="glow"></div>
+                  <header>
+                    <h1><span class="accent">DevOps</span> Academy</h1>
+                    <p>NGINX-Demo App 1.</p>
+                  </header>
+                  <main>
+                    <a class="btn" href="https://kubernetes.io/docs/concepts/storage/persistent-volumes/">Learn Kubernetes Storage</a>
+                    <a class="btn ghost" href="#">Explore Labs Here</a>
+                  </main>
+                  <footer>
+                    <small>Served from a PersistentVolumeClaim: efs-pvc — DevOps Academy</small>
+                  </footer>
+                </div>
+              </body>
+              </html>
+              HTML
+              cat > "$TARGET/assets/style.css" <<'CSS'
+              :root{
+                --bg:#0f1226; --fg:#e9ecf1; --muted:#9aa3b2; --accent:#6df0ff; --accent2:#8a63ff;
+              }
+              *{box-sizing:border-box}
+              html,body{height:100%;margin:0;font-family:'Inter',system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--fg);background:radial-gradient(1200px 700px at 20% 10%, rgba(141,110,255,.25), transparent 60%), radial-gradient(900px 600px at 90% 90%, rgba(109,240,255,.2), transparent 60%), var(--bg);}
+              .hero{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;text-align:center;padding:32px;position:relative;overflow:hidden}
+              header h1{font-size: clamp(32px, 5vw, 64px);margin:0;letter-spacing:.5px}
+              header p{margin:8px 0 0;color:var(--muted)}
+              .accent{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+              .btn{display:inline-block;padding:12px 20px;margin:8px;border-radius:12px;font-weight:600;color:#0a0d1a;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 10px 30px rgba(141,110,255,.3);text-decoration:none;transition:transform .15s ease, filter .2s ease}
+              .btn:hover{transform:translateY(-2px);filter:saturate(1.1)}
+              .btn.ghost{background:transparent;color:var(--fg);border:1.5px solid rgba(255,255,255,.2)}
+              footer{position:fixed;bottom:12px;left:0;right:0;text-align:center;color:var(--muted)}
+              .glow{position:absolute;inset:0;pointer-events:none;background: radial-gradient(ellipse at center, rgba(255,255,255,.06) 0, rgba(255,255,255,0) 60%);}
+              CSS
+              printf '%s\n' "$(date -Iseconds)" > "$TARGET/.bootstrapped"
+          volumeMounts:
+            - name: web-content
+              mountPath: /work
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: web-content
+              mountPath: /usr/share/nginx/html
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: "200m"
+              memory: 128Mi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: devops-academy-nginx
+  namespace: staging
+  labels:
+    app: devops-academy
+spec:
+  selector:
+    app: devops-academy
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+  type: ClusterIP

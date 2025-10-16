@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nfs-client-provisioner
+  namespace: storage
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: nfs-client-provisioner
+  template:
+    metadata:
+      labels:
+        app: nfs-client-provisioner
+    spec:
+      serviceAccountName: nfs-client-provisioner
+      containers:
+      - name: nfs-client-provisioner
+        image: registry.k8s.io/sig-storage/nfs-subdir-external-provisioner:v4.0.2
+        env:
+        - name: PROVISIONER_NAME
+          value: efs-storage
+        - name: NFS_SERVER
+          value: 10.10.1.123
+        - name: NFS_PATH
+          value: "/"
+        volumeMounts:
+        - name: nfs-client-root
+          mountPath: /persistentvolumes
+      volumes:
+      - name: nfs-client-root
+        nfs:
+          server: 10.10.1.123
+          path: "/"
+
+
+

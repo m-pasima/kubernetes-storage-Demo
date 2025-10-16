@@ -267,6 +267,6 @@ kubectl -n staging exec -it <podA> -- sh -lc 'echo "hi $(date)" > /usr/share/ngi
 kubectl -n staging exec -it <podB> -- sh -lc 'cat /usr/share/nginx/html/marker.txt || true'
 ```
 
-Happy testing! If you want me to align `deployment.yaml` to either **shared root** or **isolated subPath** patterns, drop the file here and I’ll adjust it line-by-line.
+Happy testing! 
 
 
